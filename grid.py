@@ -88,8 +88,9 @@ class Grid:
         if (target_y < self.height and 
             self.is_empty(x, target_y) and 
             (hotbin is None or not hotbin.is_wall(x, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x, target_y)) and
-            (lift is None or not lift.is_wall(x, target_y))):
+            (coldbin is None or not coldbin.is_wall(x, target_y)) 
+            #and (lift is None or not lift.is_wall(x, target_y))
+            ):
             return self.move_particle(x, y, x, target_y)
         
         # Try to fall diagonally
@@ -99,16 +100,18 @@ class Grid:
         if (x > 0 and target_y < self.height and 
             self.is_empty(x - 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x - 1, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x - 1, target_y)) and
-            (lift is None or not lift.is_wall(x - 1, target_y))):
+            (coldbin is None or not coldbin.is_wall(x - 1, target_y)) 
+            #and (lift is None or not lift.is_wall(x - 1, target_y))
+            ):
             directions.append(-1)
             
         # Check right diagonal  
         if (x < self.width - 1 and target_y < self.height and 
             self.is_empty(x + 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x + 1, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x + 1, target_y)) and
-            (lift is None or not lift.is_wall(x + 1, target_y))):
+            (coldbin is None or not coldbin.is_wall(x + 1, target_y)) 
+            #and (lift is None or not lift.is_wall(x + 1, target_y))
+            ):
             directions.append(1)
         
         if directions:
