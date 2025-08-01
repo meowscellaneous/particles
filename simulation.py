@@ -43,7 +43,7 @@ class Simulation:
         
         # Calculate spawn position (above receiver)
         self.spawn_x = self.receiver.x + self.receiver.width // 2
-        self.spawn_y = max(0, self.receiver.y - 10)  # 10 cells above receiver
+        self.spawn_y = max(0, self.receiver.y - 3)  # 10 cells above receiver
         
         self.running = False
         
@@ -131,15 +131,20 @@ class Simulation:
     
     def draw(self, screen):
         """Draw the entire simulation"""
-        # Draw grid and particles
-        self.grid.draw(screen)
+        # Fill background
+        screen.fill((50, 50, 50))
         
-        # Draw components in order (bottom to top)
+        # Draw lift system first (as background)
         self.lift.draw(screen, self.cell_size)
+        
+        # Draw other components
         self.coldbin.draw(screen, self.cell_size)
         self.psg.draw(screen, self.cell_size)
         self.hotbin.draw(screen, self.cell_size)
         self.receiver.draw(screen, self.cell_size)
+        
+        # Draw particles on top of everything
+        self.grid.draw(screen)
         
         # Draw spawn indicator (small circle above spawn point)
         if not self.spawning_complete:

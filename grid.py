@@ -79,39 +79,57 @@ class Grid:
             return False
         
         # Special handling for particles in lift system
-        if lift and (lift.is_inside_shaft(x, y) or lift.is_inside_connection(x, y)):
+        if lift and lift.is_inside_lift(x, y):
             # Don't apply normal gravity in lift - let lift handle movement
             return False
         
         # Try to fall straight down first
         target_y = y + 1
+        
+        # Check if particle can enter lift system
+        can_enter_lift = False
+        if lift and lift.is_inside_lift(x, target_y):
+            # Allow entry into lift if it's the entry point
+            entry_x, entry_y = lift.get_entry_position()
+            if x == entry_x and target_y == entry_y:
+                can_enter_lift = True
+        
         if (target_y < self.height and 
             self.is_empty(x, target_y) and 
             (hotbin is None or not hotbin.is_wall(x, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x, target_y)) 
-            #and (lift is None or not lift.is_wall(x, target_y))
-            ):
+            (coldbin is None or not coldbin.is_wall(x, target_y)) and
+            (lift is None or not lift.is_inside_lift(x, target_y) or can_enter_lift)):
             return self.move_particle(x, y, x, target_y)
         
         # Try to fall diagonally
         directions = []
         
         # Check left diagonal
+        can_enter_lift_left = False
+        if lift and lift.is_inside_lift(x - 1, target_y):
+            entry_x, entry_y = lift.get_entry_position()
+            if x - 1 == entry_x and target_y == entry_y:
+                can_enter_lift_left = True
+                
         if (x > 0 and target_y < self.height and 
             self.is_empty(x - 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x - 1, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x - 1, target_y)) 
-            #and (lift is None or not lift.is_wall(x - 1, target_y))
-            ):
+            (coldbin is None or not coldbin.is_wall(x - 1, target_y)) and
+            (lift is None or not lift.is_inside_lift(x - 1, target_y) or can_enter_lift_left)):
             directions.append(-1)
             
-        # Check right diagonal  
+        # Check right diagonal
+        can_enter_lift_right = False
+        if lift and lift.is_inside_lift(x + 1, target_y):
+            entry_x, entry_y = lift.get_entry_position()
+            if x + 1 == entry_x and target_y == entry_y:
+                can_enter_lift_right = True
+                
         if (x < self.width - 1 and target_y < self.height and 
             self.is_empty(x + 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x + 1, target_y)) and
-            (coldbin is None or not coldbin.is_wall(x + 1, target_y)) 
-            #and (lift is None or not lift.is_wall(x + 1, target_y))
-            ):
+            (coldbin is None or not coldbin.is_wall(x + 1, target_y)) and
+            (lift is None or not lift.is_inside_lift(x + 1, target_y) or can_enter_lift_right)):
             directions.append(1)
         
         if directions:
@@ -121,10 +139,7 @@ class Grid:
         return False
     
     def draw(self, screen):
-        """Draw the grid and particles"""
-        # Fill background
-        screen.fill((50, 50, 50))
-        
+        """Draw the particles only (background handled by simulation)"""
         # Draw particles
         for y in range(self.height):
             for x in range(self.width):
