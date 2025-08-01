@@ -73,7 +73,7 @@ class Grid:
         
         return len(directions) > 0
     
-    def update_particle(self, x, y, hotbin=None, coldbin=None, lift=None):
+    def update_particle(self, x, y, hotbin=None, coldbin=None, lift=None, separator=None):
         """Update single particle physics"""
         if not self.is_valid_position(x, y) or self.grid[y][x] is None:
             return False
@@ -81,6 +81,11 @@ class Grid:
         # Special handling for particles in lift system
         if lift and lift.is_inside_lift(x, y):
             # Don't apply normal gravity in lift - let lift handle movement
+            return False
+        
+        # Special handling for particles in separator
+        if separator and separator.is_inside(x, y):
+            # Don't apply normal gravity in separator - let separator handle redistribution
             return False
         
         # Try to fall straight down first
@@ -96,10 +101,16 @@ class Grid:
                 entry_x <= x < entry_x + lift.shaft_width):
                 can_enter_lift = True
         
+        # Check if particle can enter separator
+        can_enter_separator = False
+        if separator and separator.can_enter_separator(x, target_y):
+            can_enter_separator = True
+        
         if (target_y < self.height and 
             self.is_empty(x, target_y) and 
             (hotbin is None or not hotbin.is_wall(x, target_y)) and
             (coldbin is None or not coldbin.is_wall(x, target_y)) and
+            (separator is None or not separator.is_wall(x, target_y) or can_enter_separator) and
             (lift is None or not lift.is_inside_lift(x, target_y) or can_enter_lift)):
             return self.move_particle(x, y, x, target_y)
         
@@ -113,11 +124,16 @@ class Grid:
             if (target_y == entry_y and 
                 entry_x <= x - 1 < entry_x + lift.shaft_width):
                 can_enter_lift_left = True
+        
+        can_enter_separator_left = False
+        if separator and separator.can_enter_separator(x - 1, target_y):
+            can_enter_separator_left = True
                 
         if (x > 0 and target_y < self.height and 
             self.is_empty(x - 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x - 1, target_y)) and
             (coldbin is None or not coldbin.is_wall(x - 1, target_y)) and
+            (separator is None or not separator.is_wall(x - 1, target_y) or can_enter_separator_left) and
             (lift is None or not lift.is_inside_lift(x - 1, target_y) or can_enter_lift_left)):
             directions.append(-1)
             
@@ -128,11 +144,16 @@ class Grid:
             if (target_y == entry_y and 
                 entry_x <= x + 1 < entry_x + lift.shaft_width):
                 can_enter_lift_right = True
+        
+        can_enter_separator_right = False
+        if separator and separator.can_enter_separator(x + 1, target_y):
+            can_enter_separator_right = True
                 
         if (x < self.width - 1 and target_y < self.height and 
             self.is_empty(x + 1, target_y) and 
             (hotbin is None or not hotbin.is_wall(x + 1, target_y)) and
             (coldbin is None or not coldbin.is_wall(x + 1, target_y)) and
+            (separator is None or not separator.is_wall(x + 1, target_y) or can_enter_separator_right) and
             (lift is None or not lift.is_inside_lift(x + 1, target_y) or can_enter_lift_right)):
             directions.append(1)
         

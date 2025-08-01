@@ -7,9 +7,10 @@ from hotbin import HotBin
 from psg import PSG
 from coldbin import ColdBin
 from lift import Lift
+from separator import Separator
 
 class Simulation:
-    def __init__(self, screen_width=800, screen_height=600, cell_size=8):
+    def __init__(self, screen_width=800, screen_height=900, cell_size=8):
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.cell_size = cell_size
@@ -21,15 +22,16 @@ class Simulation:
         # Initialize components
         self.grid = Grid(self.grid_width, self.grid_height, cell_size)
         self.receiver = Receiver(self.grid_width, self.grid_height)
+        self.separator = Separator(self.receiver.x, self.receiver.y, self.receiver.width)
         self.hotbin = HotBin(self.receiver.x, self.receiver.y, self.receiver.width)
         self.psg = PSG(self.hotbin.x, self.hotbin.y, self.hotbin.width)
         self.coldbin = ColdBin(self.psg.x, self.psg.y, self.psg.width)
-        self.lift = Lift(self.coldbin, self.receiver.y)
+        self.lift = Lift(self.coldbin, self.separator.y + self.separator.height)
         
         # Spawning parameters
         self.spawn_count = 0
-        self.max_spawn = 50
-        self.spawn_delay = 10  # frames between spawns
+        self.max_spawn = 100
+        self.spawn_delay = 3  # frames between spawns
         self.spawn_timer = 0
         self.spawning_complete = False
         
@@ -73,6 +75,9 @@ class Simulation:
         # Update lift particles first (special upward movement)
         self.lift.update_particles_in_lift(self.grid)
         
+        # Update separator particles (redistribute x positions)
+        self.separator.update_particles_in_separator(self.grid)
+        
         # Update particles from bottom to top, right to left to avoid double updates
         for y in range(self.grid_height - 2, -1, -1):  # Skip bottom row
             for x in range(self.grid_width - 1, -1, -1):
@@ -88,7 +93,7 @@ class Simulation:
                         self.psg.cool_particle(particle)
                     
                     # Update particle position (pass all components for collision detection)
-                    self.grid.update_particle(x, y, self.hotbin, self.coldbin, self.lift)
+                    self.grid.update_particle(x, y, self.hotbin, self.coldbin, self.lift, self.separator)
     
     def update(self):
         """Update simulation state"""
@@ -140,6 +145,7 @@ class Simulation:
         # Draw other components
         self.coldbin.draw(screen, self.cell_size)
         self.psg.draw(screen, self.cell_size)
+        self.separator.draw(screen, self.cell_size)
         self.hotbin.draw(screen, self.cell_size)
         self.receiver.draw(screen, self.cell_size)
         

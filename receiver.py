@@ -2,14 +2,14 @@ import pygame
 
 class Receiver:
     def __init__(self, grid_width, grid_height):
-        self.width = 3  # Width of receiver in grid cells
+        self.width = 10  # Width of receiver in grid cells
         self.height = 1  # Height of receiver in grid cells
         self.grid_width = grid_width
         self.grid_height = grid_height
         
         # Position receiver in center of grid
         self.x = (grid_width - self.width) // 2
-        self.y = 25
+        self.y = 22
         
         self.heat_amount = 30  # Amount of heat to add to particles
         

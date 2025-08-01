@@ -2,12 +2,12 @@ import pygame
 
 class PSG:
     def __init__(self, hotbin_x, hotbin_y, hotbin_width):
-        self.width = 3  # Width of PSG in grid cells
-        self.height = 1  # Height of PSG in grid cells
+        self.width = hotbin_width - 4  # Width of PSG in grid cells
+        self.height = 3  # Height of PSG in grid cells
         
         # Position PSG underneath the hot bin, centered
         self.x = hotbin_x + (hotbin_width - self.width) // 2
-        self.y = hotbin_y + 8 + 2  # 2 cells below hot bin
+        self.y = hotbin_y + 8 + 6  # 2 cells below hot bin
         
         self.cooling_amount = 25  # Amount of heat to remove from particles
         

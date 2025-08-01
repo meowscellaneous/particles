@@ -3,20 +3,20 @@ import pygame
 class HotBin:
     def __init__(self, receiver_x, receiver_y, receiver_width):
         # Position bin underneath the receiver
-        self.width = receiver_width + 6  # Wider than receiver
+        self.width = receiver_width + 4  # Wider than receiver
         self.height = 8  # Height of the bin
         self.thickness = 1  # Thickness of walls
         
         # Center bin under receiver
         self.x = receiver_x - (self.width - receiver_width) // 2
-        self.y = receiver_y + 5  # 8 cells below receiver
+        self.y = receiver_y + 8  # 8 cells below receiver
         
         # Ensure bin doesn't go outside grid bounds
         self.x = max(0, self.x)
         
         # Opening/closing mechanism
         self.is_open = False
-        self.opening_width = 3  # Number of floor tiles to remove when open
+        self.opening_width = 6  # Number of floor tiles to remove when open
         
         # Calculate opening position (center of bottom wall)
         self.opening_start_x = self.x + (self.width - self.opening_width) // 2

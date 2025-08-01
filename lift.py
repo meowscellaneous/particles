@@ -1,15 +1,16 @@
 import pygame
 
 class Lift:
-    def __init__(self, coldbin, receiver_y):
+    def __init__(self, coldbin, separator_y):
+        self.offset_above_sep = 11
         self.coldbin_bounds = coldbin.get_bin_bounds()
-        self.receiver_y = receiver_y
+        self.separator_y = separator_y
         
         # Lift dimensions
-        self.shaft_width = 5  # Width of vertical shaft
+        self.shaft_width = coldbin.opening_width  # Width of vertical shaft
         
         # Vertical cold bin shaft (connects to bottom of cold bin)
-        self.cb_shaft_x = coldbin.opening_start_x  # Start at right edge of cold bin
+        self.cb_shaft_x = coldbin.opening_start_x 
         self.cb_shaft_y = self.coldbin_bounds['inner_bottom']  # Bottom of cold bin
         self.cb_shaft_height = 5  # Height of vertical section
         
@@ -20,7 +21,7 @@ class Lift:
 
         # Vertical main shaft
         self.main_shaft_x = self.cb_hz_shaft_x + self.cb_hz_shaft_length
-        self.main_shaft_y = self.receiver_y - 15 # offset of 15 above receiver
+        self.main_shaft_y = self.separator_y - self.offset_above_sep # offset of 15 above separator
         self.main_shaft_height = (self.cb_hz_shaft_y 
                                      + self.shaft_width
                                      - self.main_shaft_y)
@@ -33,7 +34,7 @@ class Lift:
         # Vertical receiver shaft
         self.rcv_vt_shaft_x = self.rcv_hz_shaft_x
         self.rcv_vt_shaft_y = self.rcv_hz_shaft_y + self.shaft_width
-        self.rcv_vt_shaft_height = 5
+        self.rcv_vt_shaft_height = self.offset_above_sep - self.shaft_width
         
         # Particle movement speed (cells per update)
         self.lift_speed = 0.3  # Slower than gravity for realistic movement

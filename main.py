@@ -8,7 +8,7 @@ def main():
     
     # Constants
     SCREEN_WIDTH = 800
-    SCREEN_HEIGHT = 600
+    SCREEN_HEIGHT = 800
     CELL_SIZE = 8
     FPS = 60
     
@@ -98,10 +98,10 @@ def main():
         
         # Draw instructions
         instructions = [
-            "Complete cycle: Heat → Cool → Lift → Repeat",
+            "Complete cycle: Heat → Cool → Lift → Separate → Repeat",
+            "Gray separator redistributes particles into curtain",
             "Gray lift transports particles upward",
-            "Both bins open/close every 10 seconds",
-            "Lift conservation: particles in = particles out"
+            "Both bins open/close every 10 seconds"
         ]
         
         for i, instruction in enumerate(instructions):

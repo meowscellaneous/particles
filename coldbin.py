@@ -3,20 +3,20 @@ import pygame
 class ColdBin:
     def __init__(self, psg_x, psg_y, psg_width):
         # Position bin underneath the PSG
-        self.width = psg_width + 6  # Wider than PSG
+        self.width = psg_width + 4  # Wider than PSG
         self.height = 8  # Height of the bin
         self.thickness = 1  # Thickness of walls
         
         # Center bin under PSG
         self.x = psg_x - (self.width - psg_width) // 2
-        self.y = psg_y + 2  # 2 cells below PSG
+        self.y = psg_y + 12  # + X number of cells below PSG
         
         # Ensure bin doesn't go outside grid bounds
         self.x = max(0, self.x)
         
         # Opening/closing mechanism (similar to hot bin)
         self.is_open = False
-        self.opening_width = 3  # Number of floor tiles to remove when open
+        self.opening_width = 6  # Number of floor tiles to remove when open
         
         # Calculate opening position (center of bottom wall)
         self.opening_start_x = self.x + (self.width - self.opening_width) // 2
