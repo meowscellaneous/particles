@@ -1,0 +1,137 @@
+import pygame
+import random
+from particle import Particle
+
+class Grid:
+    def __init__(self, width, height, cell_size):
+        self.width = width
+        self.height = height
+        self.cell_size = cell_size
+        self.grid = [[None for _ in range(width)] for _ in range(height)]
+        
+    def is_valid_position(self, x, y):
+        """Check if position is within grid bounds"""
+        return 0 <= x < self.width and 0 <= y < self.height
+    
+    def is_empty(self, x, y):
+        """Check if position is empty"""
+        if not self.is_valid_position(x, y):
+            return False
+        return self.grid[y][x] is None
+    
+    def place_particle(self, particle, x, y):
+        """Place particle at position"""
+        if self.is_valid_position(x, y):
+            self.grid[y][x] = particle
+            particle.move_to(x, y)
+            return True
+        return False
+    
+    def remove_particle(self, x, y):
+        """Remove particle from position"""
+        if self.is_valid_position(x, y):
+            particle = self.grid[y][x]
+            self.grid[y][x] = None
+            return particle
+        return None
+    
+    def get_particle(self, x, y):
+        """Get particle at position"""
+        if self.is_valid_position(x, y):
+            return self.grid[y][x]
+        return None
+    
+    def move_particle(self, from_x, from_y, to_x, to_y):
+        """Move particle from one position to another"""
+        if not self.is_valid_position(from_x, from_y) or not self.is_valid_position(to_x, to_y):
+            return False
+        
+        if self.grid[from_y][from_x] is None or self.grid[to_y][to_x] is not None:
+            return False
+        
+        particle = self.grid[from_y][from_x]
+        self.grid[from_y][from_x] = None
+        self.grid[to_y][to_x] = particle
+        particle.move_to(to_x, to_y)
+        return True
+    
+    def can_particle_fall(self, x, y):
+        """Check if particle can fall down"""
+        if not self.is_valid_position(x, y) or self.grid[y][x] is None:
+            return False
+        
+        # Check if can fall straight down
+        if y + 1 < self.height and self.is_empty(x, y + 1):
+            return True
+        
+        # Check if can fall diagonally
+        directions = []
+        if x > 0 and y + 1 < self.height and self.is_empty(x - 1, y + 1):
+            directions.append(-1)
+        if x < self.width - 1 and y + 1 < self.height and self.is_empty(x + 1, y + 1):
+            directions.append(1)
+        
+        return len(directions) > 0
+    
+    def update_particle(self, x, y, hotbin=None, coldbin=None, lift=None):
+        """Update single particle physics"""
+        if not self.is_valid_position(x, y) or self.grid[y][x] is None:
+            return False
+        
+        # Special handling for particles in lift system
+        if lift and (lift.is_inside_shaft(x, y) or lift.is_inside_connection(x, y)):
+            # Don't apply normal gravity in lift - let lift handle movement
+            return False
+        
+        # Try to fall straight down first
+        target_y = y + 1
+        if (target_y < self.height and 
+            self.is_empty(x, target_y) and 
+            (hotbin is None or not hotbin.is_wall(x, target_y)) and
+            (coldbin is None or not coldbin.is_wall(x, target_y)) and
+            (lift is None or not lift.is_wall(x, target_y))):
+            return self.move_particle(x, y, x, target_y)
+        
+        # Try to fall diagonally
+        directions = []
+        
+        # Check left diagonal
+        if (x > 0 and target_y < self.height and 
+            self.is_empty(x - 1, target_y) and 
+            (hotbin is None or not hotbin.is_wall(x - 1, target_y)) and
+            (coldbin is None or not coldbin.is_wall(x - 1, target_y)) and
+            (lift is None or not lift.is_wall(x - 1, target_y))):
+            directions.append(-1)
+            
+        # Check right diagonal  
+        if (x < self.width - 1 and target_y < self.height and 
+            self.is_empty(x + 1, target_y) and 
+            (hotbin is None or not hotbin.is_wall(x + 1, target_y)) and
+            (coldbin is None or not coldbin.is_wall(x + 1, target_y)) and
+            (lift is None or not lift.is_wall(x + 1, target_y))):
+            directions.append(1)
+        
+        if directions:
+            direction = random.choice(directions)
+            return self.move_particle(x, y, x + direction, target_y)
+        
+        return False
+    
+    def draw(self, screen):
+        """Draw the grid and particles"""
+        # Fill background
+        screen.fill((50, 50, 50))
+        
+        # Draw particles
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] is not None:
+                    particle = self.grid[y][x]
+                    color = particle.get_color()
+                    rect = pygame.Rect(
+                        x * self.cell_size,
+                        y * self.cell_size,
+                        self.cell_size,
+                        self.cell_size
+                    )
+                    pygame.draw.rect(screen, color, rect)
