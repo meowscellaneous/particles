@@ -86,12 +86,14 @@ class Grid:
         # Try to fall straight down first
         target_y = y + 1
         
-        # Check if particle can enter lift system
+        # Check if particle can enter lift system - allow entry across the full width
         can_enter_lift = False
         if lift and lift.is_inside_lift(x, target_y):
-            # Allow entry into lift if it's the entry point
+            # Allow entry into lift if it's at the entry level
             entry_x, entry_y = lift.get_entry_position()
-            if x == entry_x and target_y == entry_y:
+            # Check if we're at the right y level and within the shaft width
+            if (target_y == entry_y and 
+                entry_x <= x < entry_x + lift.shaft_width):
                 can_enter_lift = True
         
         if (target_y < self.height and 
@@ -108,7 +110,8 @@ class Grid:
         can_enter_lift_left = False
         if lift and lift.is_inside_lift(x - 1, target_y):
             entry_x, entry_y = lift.get_entry_position()
-            if x - 1 == entry_x and target_y == entry_y:
+            if (target_y == entry_y and 
+                entry_x <= x - 1 < entry_x + lift.shaft_width):
                 can_enter_lift_left = True
                 
         if (x > 0 and target_y < self.height and 
@@ -122,7 +125,8 @@ class Grid:
         can_enter_lift_right = False
         if lift and lift.is_inside_lift(x + 1, target_y):
             entry_x, entry_y = lift.get_entry_position()
-            if x + 1 == entry_x and target_y == entry_y:
+            if (target_y == entry_y and 
+                entry_x <= x + 1 < entry_x + lift.shaft_width):
                 can_enter_lift_right = True
                 
         if (x < self.width - 1 and target_y < self.height and 

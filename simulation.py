@@ -28,7 +28,7 @@ class Simulation:
         
         # Spawning parameters
         self.spawn_count = 0
-        self.max_spawn = 20
+        self.max_spawn = 50
         self.spawn_delay = 10  # frames between spawns
         self.spawn_timer = 0
         self.spawning_complete = False
@@ -176,11 +176,17 @@ class Simulation:
             # Currently open
             time_remaining = (self.coldbin_cycle_duration * 2 - coldbin_cycle_position) // 60
             coldbin_status = f"Open (closes in {time_remaining}s)"
+        
+        # Get lift conservation stats
+        lift_stats = self.lift.get_conservation_stats()
             
         return {
             'spawned': self.spawn_count,
             'max_spawn': self.max_spawn,
             'spawning_complete': self.spawning_complete,
             'hotbin_status': hotbin_status,
-            'coldbin_status': coldbin_status
+            'coldbin_status': coldbin_status,
+            'lift_entered': lift_stats['entered'],
+            'lift_exited': lift_stats['exited'],
+            'lift_in_transit': lift_stats['in_lift']
         }

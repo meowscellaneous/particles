@@ -82,23 +82,31 @@ def main():
             )
             screen.blit(coldbin_text, (10, 60))
             
+            # Show lift conservation stats
+            lift_text = small_font.render(
+                f"Lift: In={stats['lift_entered']} Out={stats['lift_exited']} Transit={stats['lift_in_transit']}", 
+                True, (255, 255, 255)
+            )
+            screen.blit(lift_text, (10, 85))
+            
             if stats['spawning_complete']:
                 complete_text = small_font.render(
                     "Spawning complete - particles cycling!", 
                     True, (0, 255, 0)
                 )
-                screen.blit(complete_text, (10, 85))
+                screen.blit(complete_text, (10, 110))
         
         # Draw instructions
         instructions = [
             "Complete cycle: Heat → Cool → Lift → Repeat",
             "Gray lift transports particles upward",
-            "Both bins open/close every 10 seconds"
+            "Both bins open/close every 10 seconds",
+            "Lift conservation: particles in = particles out"
         ]
         
         for i, instruction in enumerate(instructions):
             text = small_font.render(instruction, True, (200, 200, 200))
-            screen.blit(text, (10, SCREEN_HEIGHT - 80 + i * 20))
+            screen.blit(text, (10, SCREEN_HEIGHT - 100 + i * 20))
         
         # Update display
         pygame.display.flip()
