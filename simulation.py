@@ -30,7 +30,7 @@ class Simulation:
         
         # Spawning parameters
         self.spawn_count = 0
-        self.max_spawn = 100
+        self.max_spawn = 1
         self.spawn_delay = 3  # frames between spawns
         self.spawn_timer = 0
         self.spawning_complete = False
@@ -45,7 +45,19 @@ class Simulation:
         
         # Calculate spawn position (above receiver)
         self.spawn_x = self.receiver.x + self.receiver.width // 2
-        self.spawn_y = max(0, self.receiver.y - 1)  # 10 cells above receiver
+        self.spawn_y = max(0, self.receiver.y - 3)  # - X cells above receiver
+        
+        # Frame counter for thermal loss calculations
+        self.frame_counter = 0
+        
+        # Thermal loss rates for different equipment
+        self.thermal_loss_rates = {
+            'lift': 5,
+            'hotbin': 5,
+            'coldbin': 5,
+            'psg': 5,
+            'default': 0  # For particles not in specific equipment
+        }
         
         self.running = False
         
@@ -70,6 +82,29 @@ class Simulation:
                 if self.spawn_count >= self.max_spawn:
                     self.spawning_complete = True
     
+    def apply_thermal_losses(self):
+        """Apply thermal losses to all particles based on their location"""
+        for y in range(self.grid_height):
+            for x in range(self.grid_width):
+                particle = self.grid.get_particle(x, y)
+                if particle is None:
+                    continue
+                
+                # Determine thermal loss rate based on location
+                loss_rate = self.thermal_loss_rates['default']
+                
+                if self.lift.is_inside_lift(x, y):
+                    loss_rate = self.thermal_loss_rates['lift']
+                elif self.hotbin.is_inside(x, y):
+                    loss_rate = self.thermal_loss_rates['hotbin']
+                elif self.coldbin.is_inside(x, y):
+                    loss_rate = self.thermal_loss_rates['coldbin']
+                elif self.psg.is_inside(x, y):
+                    loss_rate = self.thermal_loss_rates['psg']
+                
+                # Apply thermal loss
+                particle.apply_thermal_loss(loss_rate, self.frame_counter)
+    
     def update_physics(self):
         """Update particle physics for entire grid"""
         # Update lift particles first (special upward movement)
@@ -78,27 +113,30 @@ class Simulation:
         # Update separator particles (redistribute x positions)
         self.separator.update_particles_in_separator(self.grid)
         
+        # Update PSG particles (gradual cooling)
+        self.psg.update_particles_in_psg(self.grid)
+        
+        # Update receiver particles (gradual heating)
+        self.receiver.update_particles_in_receiver(self.grid)
+        
+        # Apply thermal losses to all particles
+        self.apply_thermal_losses()
+        
         # Update particles from bottom to top, right to left to avoid double updates
         for y in range(self.grid_height - 2, -1, -1):  # Skip bottom row
             for x in range(self.grid_width - 1, -1, -1):
                 if self.grid.get_particle(x, y) is not None:
-                    particle = self.grid.get_particle(x, y)
-                    
-                    # Check if particle passes through receiver (heating)
-                    if self.receiver.is_inside(x, y):
-                        self.receiver.heat_particle(particle)
-                    
-                    # Check if particle passes through PSG (cooling)
-                    if self.psg.is_inside(x, y):
-                        self.psg.cool_particle(particle)
-                    
                     # Update particle position (pass all components for collision detection)
-                    self.grid.update_particle(x, y, self.hotbin, self.coldbin, self.lift, self.separator)
+                    # Note: We pass PSG to enable speed reduction
+                    self.grid.update_particle(x, y, self.hotbin, self.coldbin, self.lift, self.separator, self.psg)
     
     def update(self):
         """Update simulation state"""
         if not self.running:
             return
+            
+        # Increment frame counter
+        self.frame_counter += 1
             
         # Update spawn timer
         if self.spawn_timer > 0:
@@ -185,6 +223,10 @@ class Simulation:
         
         # Get lift conservation stats
         lift_stats = self.lift.get_conservation_stats()
+        
+        # Get PSG and receiver stats
+        psg_stats = self.psg.get_stats()
+        receiver_stats = self.receiver.get_stats()
             
         return {
             'spawned': self.spawn_count,
@@ -194,5 +236,7 @@ class Simulation:
             'coldbin_status': coldbin_status,
             'lift_entered': lift_stats['entered'],
             'lift_exited': lift_stats['exited'],
-            'lift_in_transit': lift_stats['in_lift']
+            'lift_in_transit': lift_stats['in_lift'],
+            'psg_heat_extracted': psg_stats['total_heat_extracted'],
+            'receiver_heat_added': receiver_stats['total_heat_added']
         }

@@ -6,7 +6,11 @@ class Particle:
         self.x = x
         self.y = y
         self.temperature = temperature
-        self.max_temperature = 100
+        self.max_temperature = 500
+        
+        # Thermal loss tracking
+        self.last_thermal_loss_frame = 0
+        self.thermal_loss_interval = 10  # frames between thermal loss applications
         
     def get_color(self):
         """Get particle color based on temperature (cooler = yellow/brown, hotter = red)"""
@@ -34,6 +38,16 @@ class Particle:
     def heat(self, amount):
         """Increase particle temperature"""
         self.temperature = min(self.temperature + amount, self.max_temperature)
+    
+    def cool(self, amount):
+        """Decrease particle temperature"""
+        self.temperature = max(0, self.temperature - amount)
+    
+    def apply_thermal_loss(self, loss_amount, current_frame):
+        """Apply thermal loss if enough time has passed"""
+        if current_frame - self.last_thermal_loss_frame >= self.thermal_loss_interval:
+            self.cool(loss_amount)
+            self.last_thermal_loss_frame = current_frame
     
     def move_to(self, new_x, new_y):
         """Move particle to new position"""

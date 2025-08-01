@@ -9,6 +9,9 @@ class Grid:
         self.cell_size = cell_size
         self.grid = [[None for _ in range(width)] for _ in range(height)]
         
+        # Speed tracking for PSG particles
+        self.psg_speed_counter = {}  # Track frame counters for particles in PSG
+        
     def is_valid_position(self, x, y):
         """Check if position is within grid bounds"""
         return 0 <= x < self.width and 0 <= y < self.height
@@ -32,6 +35,10 @@ class Grid:
         if self.is_valid_position(x, y):
             particle = self.grid[y][x]
             self.grid[y][x] = None
+            # Clean up PSG speed tracking if particle is removed
+            particle_id = id(particle) if particle else None
+            if particle_id in self.psg_speed_counter:
+                del self.psg_speed_counter[particle_id]
             return particle
         return None
     
@@ -73,9 +80,36 @@ class Grid:
         
         return len(directions) > 0
     
-    def update_particle(self, x, y, hotbin=None, coldbin=None, lift=None, separator=None):
+    def should_particle_move_slowly(self, x, y, psg=None):
+        """Check if particle should move slowly due to PSG"""
+        if psg and psg.should_particle_move_slow(x, y):
+            particle = self.get_particle(x, y)
+            if particle:
+                particle_id = id(particle)
+                # Initialize or increment counter for this particle
+                if particle_id not in self.psg_speed_counter:
+                    self.psg_speed_counter[particle_id] = 0
+                self.psg_speed_counter[particle_id] += 1
+                
+                # Only allow movement every psg.slow_factor frames
+                return self.psg_speed_counter[particle_id] % psg.slow_factor == 0
+        else:
+            # Clean up counter if particle is no longer in PSG
+            particle = self.get_particle(x, y)
+            if particle:
+                particle_id = id(particle)
+                if particle_id in self.psg_speed_counter:
+                    del self.psg_speed_counter[particle_id]
+        
+        return True  # Normal speed movement
+    
+    def update_particle(self, x, y, hotbin=None, coldbin=None, lift=None, separator=None, psg=None):
         """Update single particle physics"""
         if not self.is_valid_position(x, y) or self.grid[y][x] is None:
+            return False
+        
+        # Check if particle should move slowly due to PSG
+        if psg and not self.should_particle_move_slowly(x, y, psg):
             return False
         
         # Special handling for particles in lift system
