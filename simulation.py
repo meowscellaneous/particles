@@ -35,15 +35,15 @@ class Simulation:
         
         # Hot bin opening/closing timer (10 seconds = 600 frames at 60 FPS)
         self.hotbin_timer = 0
-        self.hotbin_cycle_duration = 600  # 10 seconds in frames
+        self.hotbin_cycle_duration = 300  # 10 seconds in frames
         
         # Cold bin opening/closing timer (same timing as hot bin)
         self.coldbin_timer = 0
-        self.coldbin_cycle_duration = 600  # 10 seconds in frames
+        self.coldbin_cycle_duration = 300  # 10 seconds in frames
         
         # Calculate spawn position (above receiver)
         self.spawn_x = self.receiver.x + self.receiver.width // 2
-        self.spawn_y = max(0, self.receiver.y - 3)  # 10 cells above receiver
+        self.spawn_y = max(0, self.receiver.y - 1)  # 10 cells above receiver
         
         self.running = False
         

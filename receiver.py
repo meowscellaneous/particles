@@ -9,7 +9,7 @@ class Receiver:
         
         # Position receiver in center of grid
         self.x = (grid_width - self.width) // 2
-        self.y = 7
+        self.y = 25
         
         self.heat_amount = 30  # Amount of heat to add to particles
         

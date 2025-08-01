@@ -9,7 +9,7 @@ class HotBin:
         
         # Center bin under receiver
         self.x = receiver_x - (self.width - receiver_width) // 2
-        self.y = receiver_y + 8  # 8 cells below receiver
+        self.y = receiver_y + 5  # 8 cells below receiver
         
         # Ensure bin doesn't go outside grid bounds
         self.x = max(0, self.x)
